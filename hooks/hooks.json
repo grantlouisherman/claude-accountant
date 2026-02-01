@@ -1,0 +1,10 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": ".*",
+        "command": "bash scripts/post-tool-hook.sh \"$TOOL_NAME\" \"$SESSION_ID\""
+      }
+    ]
+  }
+}

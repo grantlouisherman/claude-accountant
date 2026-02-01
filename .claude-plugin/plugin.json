@@ -1,0 +1,14 @@
+{
+  "name": "usage-tracker",
+  "version": "1.0.0",
+  "display_name": "Usage Tracker",
+  "description": "Tracks API usage, estimates costs, and recommends budget-aware actions for Claude Code sessions",
+  "author": "usage-tracker-plugin",
+  "mcp": {
+    "type": "stdio",
+    "command": "node",
+    "args": ["dist/index.js"]
+  },
+  "skills": ["skills/usage-awareness/SKILL.md"],
+  "hooks": ["hooks/hooks.json"]
+}
