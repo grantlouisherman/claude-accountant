@@ -14,7 +14,6 @@ import {
   estimateTaskCostSchema,
   estimateTaskCostTool,
 } from "./tools/estimate-task-cost.js";
-import { logUsageSchema, logUsageTool } from "./tools/log-usage.js";
 import {
   getUsageHistorySchema,
   getUsageHistoryTool,
@@ -85,45 +84,6 @@ export function createServer(): Server {
             },
           },
           required: ["task_description"],
-        },
-      },
-      {
-        name: "log_usage",
-        description:
-          "Record token usage after completing work. Call this after each significant task to keep budget tracking accurate.",
-        inputSchema: {
-          type: "object" as const,
-          properties: {
-            session_id: {
-              type: "string",
-              description: "Current session identifier",
-            },
-            model: {
-              type: "string",
-              description: "Model used",
-            },
-            input_tokens: {
-              type: "number",
-              description: "Input tokens consumed",
-            },
-            output_tokens: {
-              type: "number",
-              description: "Output tokens consumed",
-            },
-            cache_read_tokens: { type: "number", default: 0 },
-            cache_write_tokens: { type: "number", default: 0 },
-            task_description: {
-              type: "string",
-              description: "What was done",
-              default: "",
-            },
-            source: {
-              type: "string",
-              enum: ["estimate", "admin_api", "hook", "manual"],
-              default: "estimate",
-            },
-          },
-          required: ["session_id", "input_tokens", "output_tokens"],
         },
       },
       {
@@ -204,11 +164,6 @@ export function createServer(): Server {
       case "estimate_task_cost": {
         const input = estimateTaskCostSchema.parse(args);
         return estimateTaskCostTool(config, input);
-      }
-
-      case "log_usage": {
-        const input = logUsageSchema.parse(args);
-        return logUsageTool(config, input);
       }
 
       case "get_usage_history": {

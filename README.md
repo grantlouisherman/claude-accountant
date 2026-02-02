@@ -77,7 +77,6 @@ Once installed, Claude Code gains these tools:
 |------|-------------|
 | `check_budget` | Current daily spending vs limits, returns status (ok/warning/critical/exceeded) |
 | `estimate_task_cost` | Predict token cost of an upcoming task before starting it |
-| `log_usage` | Record token usage after completing work |
 | `get_usage_history` | Daily spending breakdown over the past N days |
 | `get_offload_recommendations` | Cost-saving suggestions based on budget status |
 | `configure_budget` | Update budget limits and thresholds at runtime |

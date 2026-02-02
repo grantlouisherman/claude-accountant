@@ -11,10 +11,9 @@ You have access to a usage tracking plugin. Follow these rules to stay budget-aw
 - If the estimated cost exceeds 10% of the daily budget, inform the user and suggest alternatives.
 - Call `get_offload_recommendations` when budget is above 60% used.
 
-## After Completing Work
-- Tool usage is automatically logged via the PostToolUse hook — you do not need to manually call `log_usage` after every tool call.
-- For significant multi-step tasks, you may still call `log_usage` with a summary if you want to add a human-readable description.
-- Use session_id to group related work within a conversation.
+## Usage Tracking
+- All tool usage is automatically logged via the PostToolUse hook — no manual logging needed.
+- Usage data is ingested into the budget automatically when you call `check_budget` or `get_usage_history`.
 
 ## Budget Thresholds
 - **OK** (<80%): Work normally.
