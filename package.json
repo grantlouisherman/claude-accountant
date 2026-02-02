@@ -1,12 +1,39 @@
 {
-  "name": "usage-tracker-plugin",
+  "name": "claude-accountant",
   "version": "1.0.0",
   "description": "Claude Code plugin that tracks API usage, estimates costs, and recommends budget-aware actions",
   "type": "module",
   "main": "dist/index.js",
+  "bin": {
+    "claude-accountant": "dist/index.js"
+  },
+  "files": [
+    "dist",
+    "skills",
+    "hooks",
+    "scripts",
+    ".claude-plugin",
+    ".mcp.json"
+  ],
+  "keywords": [
+    "claude",
+    "claude-code",
+    "mcp",
+    "usage-tracker",
+    "budget",
+    "anthropic",
+    "plugin",
+    "model-context-protocol"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/grantlouisherman/claude-accountant.git"
+  },
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
+    "prepublishOnly": "npm run build",
     "test": "vitest run",
     "test:watch": "vitest"
   },

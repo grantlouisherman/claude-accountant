@@ -7,7 +7,14 @@
       "Bash(npm install:*)",
       "Bash(chmod:*)",
       "Bash(npx tsc)",
-      "Bash(npx vitest:*)"
+      "Bash(npx vitest:*)",
+      "Bash(npm run build:*)",
+      "Bash(npm whoami:*)",
+      "Bash(npm publish:*)"
     ]
-  }
+  },
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": [
+    "usage-tracker"
+  ]
 }
