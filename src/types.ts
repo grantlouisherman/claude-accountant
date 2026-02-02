@@ -21,7 +21,6 @@ export interface Config {
   data_dir: string;
   admin_api?: {
     api_key: string;
-    organization_id: string;
     sync_interval_minutes: number;
   };
 }
@@ -50,6 +49,22 @@ export interface DailySummary {
   request_count: number;
 }
 
+export interface ApiUsageByModel {
+  model: string;
+  input_tokens: number;
+  output_tokens: number;
+  cache_read_tokens: number;
+  cache_write_tokens: number;
+  cost_usd: number;
+}
+
+export interface ApiUsageSummary {
+  total_cost_usd: number;
+  total_input_tokens: number;
+  total_output_tokens: number;
+  by_model: ApiUsageByModel[];
+}
+
 export interface BudgetSnapshot {
   status: BudgetStatus;
   daily_limit_usd: number;
@@ -59,6 +74,9 @@ export interface BudgetSnapshot {
   request_count_today: number;
   monthly_limit_usd: number | null;
   spent_this_month_usd: number | null;
+  api_usage?: ApiUsageSummary;
+  api_spent_today_usd?: number;
+  api_pct_used?: number;
 }
 
 export interface CostEstimate {

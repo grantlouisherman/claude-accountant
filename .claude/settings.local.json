@@ -10,7 +10,10 @@
       "Bash(npx vitest:*)",
       "Bash(npm run build:*)",
       "Bash(npm whoami:*)",
-      "Bash(npm publish:*)"
+      "Bash(npm publish:*)",
+      "mcp__usage-tracker__check_budget",
+      "mcp__usage-tracker__log_usage",
+      "Bash(npm test:*)"
     ]
   },
   "enableAllProjectMcpServers": true,

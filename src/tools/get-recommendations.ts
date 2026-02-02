@@ -20,11 +20,11 @@ export const getRecommendationsSchema = z.object({
 
 export type GetRecommendationsInput = z.infer<typeof getRecommendationsSchema>;
 
-export function getRecommendationsTool(
+export async function getRecommendationsTool(
   config: Config,
   input: GetRecommendationsInput
 ) {
-  const budget = getBudgetStatus(config);
+  const budget = await getBudgetStatus(config);
   const model = input.current_model ?? config.default_model;
   const recs = getRecommendations(
     budget,

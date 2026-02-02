@@ -199,7 +199,7 @@ export function createServer(): Server {
 
     switch (name) {
       case "check_budget":
-        return checkBudget(config);
+        return await checkBudget(config);
 
       case "estimate_task_cost": {
         const input = estimateTaskCostSchema.parse(args);
@@ -218,7 +218,7 @@ export function createServer(): Server {
 
       case "get_offload_recommendations": {
         const input = getRecommendationsSchema.parse(args ?? {});
-        return getRecommendationsTool(config, input);
+        return await getRecommendationsTool(config, input);
       }
 
       case "configure_budget": {
@@ -263,7 +263,7 @@ export function createServer(): Server {
 
     switch (uri) {
       case "budget://status":
-        return { contents: [budgetStatusResource(config)] };
+        return { contents: [await budgetStatusResource(config)] };
 
       case "usage://today":
         return { contents: [usageSummaryResource(config)] };

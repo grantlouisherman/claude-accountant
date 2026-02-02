@@ -1,6 +1,6 @@
 import { z } from "zod";
 import type { Config } from "../types.js";
-import { getUsageHistory } from "../db.js";
+import { getUsageHistory, ingestHookEvents } from "../db.js";
 
 export const getUsageHistorySchema = z.object({
   days: z
@@ -18,6 +18,9 @@ export function getUsageHistoryTool(
   config: Config,
   input: GetUsageHistoryInput
 ) {
+  // Ingest any pending hook events before returning history
+  ingestHookEvents(config);
+
   const history = getUsageHistory(config, input.days);
 
   if (history.length === 0) {

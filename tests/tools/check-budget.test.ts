@@ -33,14 +33,14 @@ describe("check_budget tool", () => {
     fs.rmSync(config.data_dir, { recursive: true, force: true });
   });
 
-  it("returns OK status when no usage", () => {
-    const result = checkBudget(config);
+  it("returns OK status when no usage", async () => {
+    const result = await checkBudget(config);
     expect(result.data.status).toBe("ok");
     expect(result.data.spent_today_usd).toBe(0);
     expect(result.data.remaining_usd).toBe(10);
   });
 
-  it("reflects logged usage", () => {
+  it("reflects logged usage", async () => {
     logUsage(config, {
       timestamp: new Date().toISOString(),
       session_id: "test",
@@ -54,14 +54,14 @@ describe("check_budget tool", () => {
       source: "estimate",
     });
 
-    const result = checkBudget(config);
+    const result = await checkBudget(config);
     expect(result.data.spent_today_usd).toBe(5.0);
     expect(result.data.pct_used).toBe(50);
     expect(result.data.status).toBe("ok");
   });
 
-  it("returns text content", () => {
-    const result = checkBudget(config);
+  it("returns text content", async () => {
+    const result = await checkBudget(config);
     expect(result.content[0].type).toBe("text");
     expect(result.content[0].text).toContain("Budget Status: OK");
   });

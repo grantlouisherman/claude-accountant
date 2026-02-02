@@ -1,8 +1,11 @@
 import Database from "better-sqlite3";
 import path from "node:path";
+import fs from "node:fs";
 import type { UsageLogEntry, DailySummary } from "./types.js";
 import { resolveDataDir } from "./config.js";
 import type { Config } from "./types.js";
+import { estimateToolTokens } from "./hook-estimator.js";
+import { calculateCost } from "./pricing.js";
 
 let db: Database.Database | null = null;
 
@@ -147,6 +150,58 @@ export function getMonthUsage(config: Config): number {
     .get(monthStart) as { total: number };
 
   return row.total;
+}
+
+interface HookEvent {
+  timestamp: string;
+  tool: string;
+  session_id: string;
+}
+
+export function ingestHookEvents(config: Config): number {
+  const dataDir = resolveDataDir(config);
+  const hookFile = path.join(dataDir, "hook_events.jsonl");
+
+  if (!fs.existsSync(hookFile)) return 0;
+
+  const content = fs.readFileSync(hookFile, "utf-8").trim();
+  if (!content) return 0;
+
+  const lines = content.split("\n");
+  let ingested = 0;
+
+  for (const line of lines) {
+    try {
+      const event = JSON.parse(line) as HookEvent;
+      const estimate = estimateToolTokens(event.tool);
+      const model = config.default_model;
+      const cost = calculateCost(
+        model,
+        estimate.input_tokens,
+        estimate.output_tokens
+      );
+
+      logUsage(config, {
+        timestamp: event.timestamp,
+        session_id: event.session_id,
+        model,
+        input_tokens: estimate.input_tokens,
+        output_tokens: estimate.output_tokens,
+        cache_read_tokens: 0,
+        cache_write_tokens: 0,
+        estimated_cost_usd: cost,
+        task_description: `Auto-logged: ${event.tool} tool use`,
+        source: "hook",
+      });
+      ingested++;
+    } catch {
+      // Skip malformed lines
+    }
+  }
+
+  // Truncate the file after ingesting
+  fs.writeFileSync(hookFile, "");
+  return ingested;
 }
 
 export function closeDb(): void {

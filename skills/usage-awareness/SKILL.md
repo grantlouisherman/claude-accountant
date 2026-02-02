@@ -12,15 +12,20 @@ You have access to a usage tracking plugin. Follow these rules to stay budget-aw
 - Call `get_offload_recommendations` when budget is above 60% used.
 
 ## After Completing Work
-- Call `log_usage` with your best estimate of tokens consumed after each significant task.
+- Tool usage is automatically logged via the PostToolUse hook — you do not need to manually call `log_usage` after every tool call.
+- For significant multi-step tasks, you may still call `log_usage` with a summary if you want to add a human-readable description.
 - Use session_id to group related work within a conversation.
-- Include a brief task_description so the user can see what each charge was for.
 
 ## Budget Thresholds
 - **OK** (<80%): Work normally.
 - **Warning** (80-95%): Prioritize essential tasks. Use concise responses. Suggest deferring non-urgent work.
 - **Critical** (95-100%): Only handle urgent requests. Recommend switching to a cheaper model. Strongly suggest deferring.
 - **Exceeded** (>100%): Inform the user their daily budget is spent. Suggest waiting until tomorrow or increasing the limit.
+
+## API Usage Data
+- When `check_budget` returns "API Reported Spend" data, this is real usage from Anthropic's Admin API — prefer it over local estimates for budget decisions.
+- The budget status uses the **higher** of local estimates and API-reported spend, so you always get the more conservative view.
+- If API data shows significantly higher spend than local estimates, mention this discrepancy to the user.
 
 ## Cost-Saving Habits
 - Prefer concise answers when budget is above 60%.
