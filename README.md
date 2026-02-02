@@ -104,17 +104,57 @@ You can edit this file directly or use the `configure_budget` tool during a sess
 
 ### Optional: Anthropic Admin API
 
-For exact usage data instead of estimates, add your Admin API credentials:
+For real usage data instead of estimates, add your Admin API key to the config. This calls the [`/v1/organizations/usage_report/messages`](https://platform.claude.com/docs/en/api/admin/usage_report/retrieve_messages) endpoint to fetch actual spend from Anthropic.
+
+**Setup:**
+
+1. Go to the [Anthropic Console](https://console.anthropic.com) and create an **Admin API key** (under your organization's admin settings). This is different from a regular API key.
+2. Add the `admin_api` block to `~/.config/usage-plugin/config.json`:
 
 ```json
 {
+  "budget": {
+    "daily_limit_usd": 10.00,
+    "monthly_limit_usd": null,
+    "warning_threshold_pct": 80,
+    "critical_threshold_pct": 95
+  },
+  "pricing_tier": "standard",
+  "default_model": "claude-sonnet-4-5-20250514",
+  "data_dir": "~/.config/usage-plugin/data",
   "admin_api": {
     "api_key": "sk-ant-admin-...",
-    "organization_id": "org-...",
     "sync_interval_minutes": 5
   }
 }
 ```
+
+When configured, `check_budget` will show both local estimates and real API-reported spend:
+
+```
+Budget Status: WARNING
+Daily Limit: $10.00
+Spent Today: $7.5000
+Remaining: $1.8200
+Used: 75.0%
+Requests Today: 42
+
+API Reported Spend: $8.1800
+API Usage: 81.8% of daily limit
+Source: Anthropic Admin API
+
+Breakdown by model:
+  claude-opus-4-5-20251101: $6.2300 (15000 in / 3200 out)
+  claude-sonnet-4-5-20250514: $1.9500 (45000 in / 8000 out)
+```
+
+The budget status uses the **higher** of local estimates and API-reported spend, so you always get the more conservative view.
+
+### Auto-logging via hooks
+
+The plugin ships with a PostToolUse hook that automatically logs every tool invocation. Each tool type has a rough token estimate (e.g., Read ~2000 input tokens, Edit ~3000 input tokens), so your budget tracks usage without any manual logging needed.
+
+Hook events are written to `~/.config/usage-plugin/data/hook_events.jsonl` and ingested into SQLite automatically when you call `check_budget` or `get_usage_history`.
 
 ## How it works
 
@@ -123,9 +163,10 @@ The plugin uses an estimation-based approach since MCP tools can't introspect Cl
 1. **Complexity tiers** (trivial/simple/moderate/complex/massive) map to token ranges
 2. **Per-file multipliers** account for reads (~1500 input tokens) and edits (~3000 output tokens)
 3. **Extended thinking** multiplies output estimates by 3x
-4. All data is stored locally in SQLite with WAL mode for fast concurrent access
+4. **Auto-logging hooks** track every tool call with per-tool-type token estimates
+5. All data is stored locally in SQLite with WAL mode for fast concurrent access
 
-When the Admin API is configured, real usage data supersedes local estimates.
+When the Admin API is configured, real usage data is shown alongside local estimates, and the higher value drives budget status decisions.
 
 ## Budget thresholds
 
