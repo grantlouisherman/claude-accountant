@@ -55,7 +55,7 @@ export function createServer(): Server {
       {
         name: "estimate_task_cost",
         description:
-          "Estimate the token cost of an upcoming task before starting it. Helps decide whether to proceed, simplify, or defer.",
+          "Estimate the token cost of an upcoming task before starting it. Helps decide whether to proceed, simplify, or defer. Supports project-level estimates with subtasks and multi-session multipliers. When a plan is configured, shows cost as a percentage of monthly plan allowance.",
         inputSchema: {
           type: "object" as const,
           properties: {
@@ -81,6 +81,43 @@ export function createServer(): Server {
               type: "boolean",
               description: "Whether extended thinking will be used",
               default: false,
+            },
+            subtasks: {
+              type: "array",
+              description:
+                "Array of subtasks for project-level breakdown. When provided, returns per-subtask and total estimates.",
+              items: {
+                type: "object",
+                properties: {
+                  description: {
+                    type: "string",
+                    description: "Brief description of the subtask",
+                  },
+                  complexity: {
+                    type: "string",
+                    enum: [
+                      "trivial",
+                      "simple",
+                      "moderate",
+                      "complex",
+                      "massive",
+                    ],
+                    description:
+                      "Override complexity tier (auto-detected if omitted)",
+                  },
+                  file_count: {
+                    type: "number",
+                    description: "Number of files involved in this subtask",
+                  },
+                },
+                required: ["description"],
+              },
+            },
+            sessions: {
+              type: "number",
+              description:
+                "Number of sessions to multiply estimate over (default 1)",
+              default: 1,
             },
           },
           required: ["task_description"],
@@ -146,6 +183,28 @@ export function createServer(): Server {
             critical_threshold_pct: {
               type: "number",
               description: "Critical threshold %",
+            },
+            plan_type: {
+              type: "string",
+              enum: [
+                "pro",
+                "max_5x",
+                "max_20x",
+                "team",
+                "enterprise",
+                "api",
+              ],
+              description: "Anthropic plan type",
+            },
+            plan_seats: {
+              type: "number",
+              description:
+                "Number of seats (for team/enterprise plans)",
+            },
+            plan_monthly_allowance_usd: {
+              type: "number",
+              description:
+                "Override monthly allowance in USD for the plan",
             },
           },
         },

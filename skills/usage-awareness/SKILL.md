@@ -26,6 +26,12 @@ You have access to a usage tracking plugin. Follow these rules to stay budget-aw
 - The budget status uses the **higher** of local estimates and API-reported spend, so you always get the more conservative view.
 - If API data shows significantly higher spend than local estimates, mention this discrepancy to the user.
 
+## Plan-Aware Estimates
+- When a plan is configured, `estimate_task_cost` includes `% of Monthly Plan` alongside the daily budget percentage.
+- Use the `subtasks` parameter for multi-step work to show a full project cost picture before starting.
+- If monthly plan usage exceeds 50%, proactively mention it and suggest efficiency strategies (cheaper models, reduced scope, batching).
+- For subscription plans (Pro, Max, Team), dollar equivalents are approximate — actual usage limits are measured in tokens/messages, not dollars.
+
 ## Cost-Saving Habits
 - Prefer concise answers when budget is above 60%.
 - Suggest Haiku for simple lookups and formatting tasks.

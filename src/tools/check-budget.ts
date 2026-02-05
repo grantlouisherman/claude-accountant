@@ -1,6 +1,10 @@
 import { z } from "zod";
 import type { Config } from "../types.js";
 import { getBudgetStatus } from "../budget.js";
+import {
+  getPlanLabel,
+  getEffectiveMonthlyAllowance,
+} from "../plans.js";
 
 export const checkBudgetSchema = z.object({});
 
@@ -21,6 +25,21 @@ export async function checkBudget(config: Config) {
     lines.push(
       `Spent This Month: $${snapshot.spent_this_month_usd?.toFixed(4) ?? "0.0000"}`
     );
+  }
+
+  if (config.plan) {
+    const label = getPlanLabel(config.plan);
+    const allowance = getEffectiveMonthlyAllowance(config.plan);
+    if (allowance > 0) {
+      const spentForPlan =
+        snapshot.spent_this_month_usd ?? snapshot.spent_today_usd;
+      const planPct = (spentForPlan / allowance) * 100;
+      const planRemaining = Math.max(0, allowance - spentForPlan);
+      lines.push("");
+      lines.push(`Plan: ${label} ($${allowance.toFixed(2)}/mo)`);
+      lines.push(`Monthly Plan Usage: ${planPct.toFixed(2)}%`);
+      lines.push(`Plan Remaining: ~$${planRemaining.toFixed(2)}`);
+    }
   }
 
   if (snapshot.api_spent_today_usd !== undefined) {

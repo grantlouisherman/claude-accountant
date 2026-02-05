@@ -33,6 +33,7 @@ export function loadConfig(): Config {
     ...DEFAULT_CONFIG,
     ...raw,
     budget: { ...DEFAULT_CONFIG.budget, ...raw.budget },
+    plan: raw.plan ?? undefined,
   };
 }
 

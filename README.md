@@ -6,6 +6,8 @@ A [Claude Code](https://docs.anthropic.com/en/docs/claude-code) MCP plugin that 
 
 - **Checks your budget** at the start of every session so Claude knows how much is left
 - **Estimates costs** before expensive operations (large refactors, multi-file edits)
+- **Plan-aware estimates** -- see costs as a percentage of your Anthropic plan (Pro, Max, Team, Enterprise, API)
+- **Project-level estimates** -- break work into subtasks and get a full cost picture before starting
 - **Tracks spending** in a local SQLite database -- no external API needed
 - **Recommends offloading** when budget runs low (cheaper model, defer, reduce scope, Batch API)
 - **Shows usage history** over the past week for planning
@@ -76,10 +78,10 @@ Once installed, Claude Code gains these tools:
 | Tool | Description |
 |------|-------------|
 | `check_budget` | Current daily spending vs limits, returns status (ok/warning/critical/exceeded) |
-| `estimate_task_cost` | Predict token cost of an upcoming task before starting it |
+| `estimate_task_cost` | Predict token cost of an upcoming task or project (supports subtasks and multi-session estimates) |
 | `get_usage_history` | Daily spending breakdown over the past N days |
 | `get_offload_recommendations` | Cost-saving suggestions based on budget status |
-| `configure_budget` | Update budget limits and thresholds at runtime |
+| `configure_budget` | Update budget limits, thresholds, and plan settings at runtime |
 
 ## Configuration
 
@@ -100,6 +102,121 @@ Config is created automatically at `~/.config/usage-plugin/config.json` on first
 ```
 
 You can edit this file directly or use the `configure_budget` tool during a session.
+
+### Plan-aware usage estimates
+
+> **New** -- configure your Anthropic plan and see every cost estimate as a percentage of your monthly allowance.
+
+Add a `plan` block to your config to enable this:
+
+```json
+{
+  "budget": {
+    "daily_limit_usd": 10.00
+  },
+  "plan": {
+    "type": "max_5x",
+    "monthly_allowance_usd": 100
+  }
+}
+```
+
+Supported plan types:
+
+| Plan | Default $/mo | Notes |
+|------|-------------|-------|
+| `pro` | $20 | Anthropic Pro subscription |
+| `max_5x` | $100 | Max 5x subscription |
+| `max_20x` | $200 | Max 20x subscription |
+| `team` | $30/seat | Set `seats` to multiply (e.g. 5 seats = $150/mo) |
+| `enterprise` | user-configured | Must set `monthly_allowance_usd` |
+| `api` | uses `budget.monthly_limit_usd` | For direct API usage |
+
+Team/enterprise example with seats:
+
+```json
+{
+  "plan": {
+    "type": "team",
+    "monthly_allowance_usd": 30,
+    "seats": 5
+  }
+}
+```
+
+This gives an effective allowance of $150/mo (30 x 5 seats).
+
+You can also set or change the plan at runtime without editing the file:
+
+```
+configure_budget(plan_type: "max_5x", plan_monthly_allowance_usd: 100)
+```
+
+Once configured, `check_budget` and `estimate_task_cost` include plan context automatically:
+
+```
+Budget Status: OK
+Daily Limit: $10.00
+Spent Today: $1.2500
+Remaining: $8.7500
+Used: 12.5%
+Requests Today: 8
+
+Plan: Max 5x ($100.00/mo)
+Monthly Plan Usage: 1.25%
+Plan Remaining: ~$98.75
+```
+
+Single-task estimates show the plan percentage:
+
+```
+Task: fix authentication bug
+Model: claude-sonnet-4-5-20250514
+Complexity: simple; Files: 2; Est. input: 5,000 tokens; Est. output: 2,000 tokens
+Estimated Cost: $0.0450
+% of Daily Budget: 0.45%
+Plan: Max 5x ($100.00/mo)
+% of Monthly Plan: 0.05%
+```
+
+#### Project-level estimates
+
+For larger work, pass `subtasks` to get a full project breakdown before starting:
+
+```
+estimate_task_cost(
+  task_description: "implement new auth system",
+  subtasks: [
+    { description: "Design auth schema", complexity: "moderate", file_count: 3 },
+    { description: "Implement login flow", complexity: "complex", file_count: 5 },
+    { description: "Write tests", complexity: "moderate", file_count: 8 }
+  ],
+  sessions: 3
+)
+```
+
+Output:
+
+```
+Project Estimate: implement new auth system
+Model: claude-sonnet-4-5-20250514
+Sessions: 3
+
+Subtasks:
+  1. Design auth schema (moderate, 3 files): $0.0390 - 0.39% daily / 0.04% plan
+  2. Implement login flow (complex, 5 files): $0.4200 - 4.20% daily / 0.42% plan
+  3. Write tests (moderate, 8 files): $0.0570 - 0.57% daily / 0.06% plan
+
+Project Total: $0.5160
+% of Daily Budget: 5.16%
+Plan: Max 5x ($100.00/mo)
+% of Monthly Plan: 0.52%
+Estimated over 3 sessions: $1.5480 (1.55% of plan)
+```
+
+This helps you decide whether to proceed, split work across days, or switch to a cheaper model before committing.
+
+> **Note:** For subscription plans (Pro, Max, Team), dollar equivalents are approximate. Actual usage limits are measured in tokens/messages, not dollars.
 
 ### Optional: Anthropic Admin API
 

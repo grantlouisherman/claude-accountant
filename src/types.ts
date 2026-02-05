@@ -1,5 +1,14 @@
 export type BudgetStatus = "ok" | "warning" | "critical" | "exceeded";
 
+export type PlanType = "pro" | "max_5x" | "max_20x" | "team" | "enterprise" | "api";
+
+export interface PlanConfig {
+  type: PlanType;
+  monthly_allowance_usd: number;
+  seats?: number;
+  custom_label?: string;
+}
+
 export type ComplexityTier =
   | "trivial"
   | "simple"
@@ -23,6 +32,7 @@ export interface Config {
     api_key: string;
     sync_interval_minutes: number;
   };
+  plan?: PlanConfig;
 }
 
 export interface UsageLogEntry {
@@ -86,6 +96,28 @@ export interface CostEstimate {
   pct_of_daily_budget: number;
   complexity: ComplexityTier;
   breakdown: string;
+  pct_of_plan?: number | null;
+  plan_label?: string;
+  plan_allowance_usd?: number;
+}
+
+export interface SubtaskEstimate {
+  description: string;
+  complexity: ComplexityTier;
+  file_count: number;
+  estimated_cost_usd: number;
+  pct_of_daily_budget: number;
+  pct_of_plan: number | null;
+}
+
+export interface ProjectEstimate {
+  subtasks: SubtaskEstimate[];
+  total_cost_usd: number;
+  pct_of_daily_budget: number;
+  pct_of_plan: number | null;
+  sessions: number;
+  total_over_sessions_usd: number;
+  pct_of_plan_over_sessions: number | null;
 }
 
 export interface Recommendation {
